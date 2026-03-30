@@ -66,7 +66,31 @@ We will build an efficiente data pipeline, we won´t throw our model into the fo
 The first step is creating a map in order to let the model translate words (triangle, circle) into whole numbers, so when our model reads a red,square, it will read (3,1) , if 3 and one where those correspondent asignations.
 
 2. Librarian torch.utils.data.Dataset
-Pytorch has a base class called dataset
+Pytorch has a base class called dataset, it acts like a librarian, joining images with labels, but in order to get it to function good we will have to make a class.
+
+__init__ ; Here the class will read the csv.
+
+__len__: Returns how much images there are
+
+__getitem__: When pytorch needs an image it will call this method, this goes to the folder and opens that image using openCV, it does the required transformation and returns the item ready.
+
+3. Transformations
+
+As mentioned in getitem, we need to prepare our image for the neural network to process it, we will do that by using a lot of mathematical transformations.
+
+- Change in colo space: OpenCV loads BGR, but pytorch expects RGB.
+- From numpy to tensor: OpenCV saves the image as a numpy matrix (height, wide, channels), but in order to work with pytorch, we need to use tensors, which are the fundamental building block of this framework(channels,height,wide)
+- Normalization: We normalize colours in order to ease the calculations and make our neural network learn much faster.
+
+4. torch.utils.data.DataLoader
+
+Dataset knows how to read an image perfectly, but neural networks don´t learn with images, they learn with batches
+
+DataLoader is the distribution system from pytorch: You give it instructions like "group images in batche of 32 and mix them randomly".
+
+Know that we have this theorical knowledge, we can make a quick overview on the pipeline
+
+DataLoader ask for a set of images -> Dataset reeds the csv file -> opens and transforms the image -> returns a tensor ready for the network.
 
 
 
