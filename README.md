@@ -1,4 +1,4 @@
-## ML-camera-pattern-recognition
+# ML-camera-pattern-recognition
 This project aims to explore the interesting library of openCV and learn to do a lot of cool stuff with our camera, in addtion to that, we want to build our own neural network with pytorch, and learnn how can we use a model trained in python in our c++ program with openCV.
 
 One of the biggest motivations for me to start this project, is to learn how trained models save its data, which is basicaly saving the parameters its neural network uses (weights and biases) so once you hace those you only need to run forward propagation once in order to get your prediction, but as far as I am concerned, there are open source formats like ONNX (Open Neural Network Exchange) which gives us an standar for these projects, we will be learning more as we progress.
@@ -59,38 +59,67 @@ We will use pytorch in order to train our model, and after that we will export i
 
 <img width="982" height="447" alt="imagen" src="https://github.com/user-attachments/assets/cc88c735-494c-473c-9c5d-32d8aae6e602" />
 
-We will build an efficiente data pipeline, we won´t throw our model into the folder and hope for the best, in order for our neural network to understand the images and thhe csv file, pytorch divides  work in 3 big theorical concepts.
+# The PyTorch Vision Pipeline: A Complete Overview
 
-1. Label encoding (nummeric diccionary)
+We will build an efficient data pipeline and a smart neural network. We won't just throw our model into a folder and hope for the best! In order for our AI to understand the images, learn from them, and eventually run in C++, PyTorch divides the workflow into several big theoretical concepts.
 
-The first step is creating a map in order to let the model translate words (triangle, circle) into whole numbers, so when our model reads a red,square, it will read (3,1) , if 3 and one where those correspondent asignations.
+## 1. Label Encoding (Numeric Dictionary)
 
-2. Librarian torch.utils.data.Dataset
-Pytorch has a base class called dataset, it acts like a librarian, joining images with labels, but in order to get it to function good we will have to make a class.
+Neural networks only do math; they don't understand text. The first step is creating a map to let the model translate words (triangle, circle, red, blue) into whole numbers. For example, if we assigned "triangle" to 3 and "green" to 1, when our model reads a green triangle, it will process it as the numeric pair **(3, 1)**.
 
-__init__ ; Here the class will read the csv.
+## 2. The Librarian: `torch.utils.data.Dataset`
 
-__len__: Returns how much images there are
+PyTorch has a base class called `Dataset`. It acts like a librarian, keeping track of images and their labels. To make it work for our specific project, we build a custom class with three mandatory methods:
 
-__getitem__: When pytorch needs an image it will call this method, this goes to the folder and opens that image using openCV, it does the required transformation and returns the item ready.
+* **`__init__`**: The setup phase. Here, the class reads the CSV file and builds its internal catalog.
+* **`__len__`**: Returns the total number of images in our dataset.
+* **`__getitem__`**: The on-demand delivery. When PyTorch needs a specific image, it calls this method. It goes to the folder, opens the image using OpenCV, applies the required transformations, and returns the item ready to go. *Because it loads images one by one on demand, it prevents our RAM from crashing!*
 
-3. Transformations
+## 3. Transformations (The Prep Cook)
 
-As mentioned in getitem, we need to prepare our image for the neural network to process it, we will do that by using a lot of mathematical transformations.
+As mentioned in `__getitem__`, we need to prepare our image before the neural network can process it. We do that by using a sequence of mathematical transformations:
 
-- Change in colo space: OpenCV loads BGR, but pytorch expects RGB.
-- From numpy to tensor: OpenCV saves the image as a numpy matrix (height, wide, channels), but in order to work with pytorch, we need to use tensors, which are the fundamental building block of this framework(channels,height,wide)
-- Normalization: We normalize colours in order to ease the calculations and make our neural network learn much faster.
+* **Change in color space**: OpenCV loads images in BGR format, but PyTorch standardly expects RGB.
+* **From NumPy to Tensor (`ToTensor`)**: OpenCV saves the image as a NumPy matrix formatted as `(Height, Width, Channels)`. To work with PyTorch, we need to convert it into a **Tensor** (the fundamental mathematical building block of this framework). This reshapes the memory to `(Channels, Height, Width)` and scales the pixel values from 0-255 down to 0.0-1.0.
+* **Normalization**: We mathematically center our colors. This eases the gradient calculations and makes our neural network learn much faster.
 
-4. torch.utils.data.DataLoader
+## 4. The Delivery Driver: `torch.utils.data.DataLoader`
 
-Dataset knows how to read an image perfectly, but neural networks don´t learn with images, they learn with batches
+The `Dataset` knows how to read *one* image perfectly, but neural networks don't learn one image at a time—they learn in **batches**. 
 
-DataLoader is the distribution system from pytorch: You give it instructions like "group images in batche of 32 and mix them randomly".
-
-Know that we have this theorical knowledge, we can make a quick overview on the pipeline
-
-DataLoader ask for a set of images -> Dataset reeds the csv file -> opens and transforms the image -> returns a tensor ready for the network.
+The `DataLoader` is the distribution system for PyTorch. You give it your `Dataset` and instructions like: *"Group images in batches of 32 and mix them randomly."* This keeps the GPU constantly fed and prevents the model from memorizing the exact order of the dataset.
 
 
 
+**DataLoader** asks for a batch $\rightarrow$ **Dataset** checks the CSV $\rightarrow$ Opens and **Transforms** the images $\rightarrow$ Returns a **Tensor** batch perfectly prepped for the neural network.
+
+---
+
+## 5. The Brain: Multi-Task Neural Network (CNN)
+
+Instead of building two separate networks (one for shape, one for color), we build a single, smarter Convolutional Neural Network (CNN) with a "Y" shaped architecture. 
+
+
+
+* **The Common Trunk (Feature Extractor)**: This is a sequence of Convolutional layers (`Conv2d`). They act like magnifying glasses scanning the image to find basic visual ingredients (straight lines, curves, patches of color). This part doesn't know what a "red square" is yet; it just extracts the raw features.
+* **The Two Heads**: After extracting the features, the data splits into two separate paths of linear layers:
+    * **Shape Head**: Compresses the visual features into 4 numbers (our 4 shapes).
+    * **Color Head**: Compresses the *same* visual features into 3 numbers (our 3 colors). 
+
+## 6. The Classroom: The Training Loop
+
+Having a brain is useless if it doesn't study. The training loop is where the actual learning happens, repeating over several "Epochs" (full passes of the dataset).
+
+
+
+* **The Guess (Forward Pass)**: The network looks at a batch of images and spits out its predictions for both shape and color.
+* **The Exam Score (Loss Function)**: We use `CrossEntropyLoss` to calculate how wrong the network was. Because we have two tasks, we calculate the shape error and the color error separately, and then **sum them together** to get the Total Error.
+* **Learning from Mistakes (Backward Pass & Optimizer)**: PyTorch does complex calculus (`loss.backward()`) to figure out which specific mathematical weights caused the mistake. Then, the Optimizer (`optim.Adam`) tweaks those weights slightly so the network performs better on the next batch.
+
+## 7. The Bridge: ONNX Export
+
+Python is great for training, but C++ is king for fast execution in production. We need to export our trained "brain" out of PyTorch.
+
+* **Evaluation Mode (`.eval()`)**: First, we freeze the network. This tells PyTorch to stop learning and lock the weights in place.
+* **The Dummy Input**: ONNX needs to know the exact dimensions of the images it will receive in the future. We feed it a "fake" tensor of `(1, 3, 64, 64)` so it can hardcode the memory layout.
+* **The Export**: We save the model as an `.onnx` file. We explicitly label the input (`camera_input`) and the two outputs (`output_form`, `output_color`) so that when we load this file in OpenCV C++, we know exactly how to talk to it.
