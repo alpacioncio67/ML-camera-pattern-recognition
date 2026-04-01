@@ -11,16 +11,14 @@ Our project will have 2 different modules, a pythhon one and a c++ one.
 - C++ module: Here we will do our computation and programming with OpenCV, which I will give more detail once I get there, and it will use the model that we trained with pythorch, along with some other cool stuff openCV lets us already do.
 
 # Project structure
-
-*  **proyecto_vision_multitarea/**
   *  `README.md` - 
-  *  **1_python_entrenamiento/** 
+  *  **python module/** 
     *  `generate_data.py` - 
     *  `model.py` - 
     *  `etiquetas.csv` - 
     *  **dataset_imagenes/** - 
     *  `vision_ai_model.onnx` - 
-  *  **2_cpp_produccion/** 
+  *  **cpp module/** 
     *  `CMakeLists.txt` - Instructions for c++ compilation
     *  **models/** - 
       *  `vision_ai_model.onnx` - 
