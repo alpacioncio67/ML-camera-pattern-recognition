@@ -12,23 +12,40 @@ Our project will have 2 different modules, a pythhon one and a c++ one.
 
 # Project structure
 proyecto_vision_multitarea/
+
 │
-├── README.md                      
+
+├── README.md              
+
 │
+
 ├── 1_python_entrenamiento/       
+
 │   ├── generate_data.py
+
 │   ├── model.py        
+
 │   │
-│   ├── etiquetas.csv              
+
+│   ├── etiquetas.csv            
+
 │   ├── dataset_imagenes/  
+
 │   │   ├── img_0000.png
+
 │   │   ├── img_0001.png
+
 │   │   └── ...
+
 │   │
+
 │   └── vision_ai_model.onnx 
+
 │
+
 │
-└── 2_cpp_produccion/             
+
+└── 2_cpp_produccion/          
     ├── CMakeLists.txt             # Instructions for compilation in c++
     │
     ├── models/                    # Move the python generated trained model here
